@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import ClientTable from "../components/ClientTable";
 
 const initialClients = [
   {
@@ -35,7 +36,7 @@ const SortPanel = dynamic(() => import("../components/SortPanel"), {
   ssr: false,
 });
 
-// helper: multi-sort (handles multiple criteria)
+// helper: multi-sort
 function multiSort(data, criteria) {
   return [...data].sort((a, b) => {
     for (let { field, direction } of criteria) {
@@ -51,49 +52,41 @@ function multiSort(data, criteria) {
 
 export default function Home() {
   const [clients, setClients] = useState(initialClients);
+  const [sortCriteria, setSortCriteria] = useState([]);
+
+  // 🔹 Load saved sort from localStorage on mount
+  useEffect(() => {
+    const savedSort = localStorage.getItem("sortCriteria");
+    if (savedSort) {
+      const parsed = JSON.parse(savedSort);
+      setSortCriteria(parsed);
+      setClients(multiSort(initialClients, parsed)); // ✅ apply sort
+    }
+  }, []);
+
+  // 🔹 Save to localStorage whenever criteria change
+  useEffect(() => {
+    if (sortCriteria.length > 0) {
+      localStorage.setItem("sortCriteria", JSON.stringify(sortCriteria));
+    } else {
+      localStorage.removeItem("sortCriteria"); // clean up if empty
+    }
+  }, [sortCriteria]);
 
   const handleApplySort = (criteria) => {
-    const sorted = multiSort(initialClients, criteria);
-    setClients(sorted);
+    setSortCriteria(criteria);
+    setClients(multiSort(initialClients, criteria));
   };
 
   return (
     <main className="p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6">
       {/* Sort panel */}
       <div className="w-full md:w-80 flex-shrink-0">
-        <SortPanel onApply={handleApplySort} />
+        <SortPanel onApply={handleApplySort} initialCriteria={sortCriteria} />
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-x-auto border rounded-lg">
-        <table className="min-w-full border-collapse">
-          <thead className="bg-gray-700 text-left text-sm font-medium text-white">
-            <tr>
-              <th className="px-3 md:px-4 py-2 border-b">Client ID</th>
-              <th className="px-3 md:px-4 py-2 border-b">Name</th>
-              <th className="px-3 md:px-4 py-2 border-b">Type</th>
-              <th className="px-3 md:px-4 py-2 border-b">Email</th>
-              <th className="px-3 md:px-4 py-2 border-b">Created At</th>
-              <th className="px-3 md:px-4 py-2 border-b">Updated At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map((c) => (
-              <tr
-                key={c.id}
-                className="hover:bg-gray-100 text-sm border-b last:border-0"
-              >
-                <td className="px-3 md:px-4 py-2">{c.id}</td>
-                <td className="px-3 md:px-4 py-2">{c.name}</td>
-                <td className="px-3 md:px-4 py-2">{c.type}</td>
-                <td className="px-3 md:px-4 py-2">{c.email}</td>
-                <td className="px-3 md:px-4 py-2">{c.createdAt}</td>
-                <td className="px-3 md:px-4 py-2">{c.updatedAt}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Client table */}
+      <ClientTable clients={clients} />
     </main>
   );
 }
