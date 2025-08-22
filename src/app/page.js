@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SortPanel from "@/components/SortPanel";
 
 const initialClients = [
   {
@@ -21,11 +22,32 @@ const initialClients = [
   },
 ];
 
+// helper: multi-sort (for now handles 1 criterion)
+function multiSort(data, criteria) {
+  return [...data].sort((a, b) => {
+    for (let { field, direction } of criteria) {
+      let valA = a[field];
+      let valB = b[field];
+
+      if (valA < valB) return direction === "asc" ? -1 : 1;
+      if (valA > valB) return direction === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+}
+
 export default function Home() {
-  const [clients] = useState(initialClients);
+  const [clients, setClients] = useState(initialClients);
+
+  const handleApplySort = (criteria) => {
+    const sorted = multiSort(initialClients, criteria);
+    setClients(sorted);
+  };
+
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Clients</h1>
+    <main className="p-6 flex gap-6">
+      <SortPanel onApply={handleApplySort} />
+      {/* <h1 className="text-2xl font-semibold mb-4">Clients</h1> */}
 
       <div className="overflow-x-auto border rounded-lg">
         <table className="w-full border-collapse">
