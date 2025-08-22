@@ -111,7 +111,7 @@ export default function SortPanel({ onApply }) {
         </button>
         <button
           onClick={addCriterion}
-          className="text-sm rounded px-3 py-1 bg-gray-700"
+          className="text-sm rounded px-3 py-1"
         >
           + Add Criterion
         </button>
