@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SortPanel from "@/components/SortPanel";
+import dynamic from "next/dynamic";
 
 const initialClients = [
   {
@@ -20,9 +20,22 @@ const initialClients = [
     createdAt: "2024-08-01",
     updatedAt: "2024-08-10",
   },
+  {
+    id: 10,
+    name: "Alice",
+    type: "Corporate",
+    email: "alice@company.com",
+    createdAt: "2024-06-10",
+    updatedAt: "2024-06-20",
+  },
 ];
 
-// helper: multi-sort (for now handles 1 criterion)
+// Dynamically load SortPanel to skip SSR
+const SortPanel = dynamic(() => import("../components/SortPanel"), {
+  ssr: false,
+});
+
+// helper: multi-sort (handles multiple criteria)
 function multiSort(data, criteria) {
   return [...data].sort((a, b) => {
     for (let { field, direction } of criteria) {
@@ -45,31 +58,37 @@ export default function Home() {
   };
 
   return (
-    <main className="p-6 flex gap-6">
-      <SortPanel onApply={handleApplySort} />
-      {/* <h1 className="text-2xl font-semibold mb-4">Clients</h1> */}
+    <main className="p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6">
+      {/* Sort panel */}
+      <div className="w-full md:w-80 flex-shrink-0">
+        <SortPanel onApply={handleApplySort} />
+      </div>
 
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="w-full border-collapse">
-          <thead className="bg-gray-700 text-left text-sm font-medium">
+      {/* Table */}
+      <div className="flex-1 overflow-x-auto border rounded-lg">
+        <table className="min-w-full border-collapse">
+          <thead className="bg-gray-700 text-left text-sm font-medium text-white">
             <tr>
-              <th className="px-4 py-2 border-b">Client ID</th>
-              <th className="px-4 py-2 border-b">Name</th>
-              <th className="px-4 py-2 border-b">Type</th>
-              <th className="px-4 py-2 border-b">Email</th>
-              <th className="px-4 py-2 border-b">Created At</th>
-              <th className="px-4 py-2 border-b">Updated At</th>
+              <th className="px-3 md:px-4 py-2 border-b">Client ID</th>
+              <th className="px-3 md:px-4 py-2 border-b">Name</th>
+              <th className="px-3 md:px-4 py-2 border-b">Type</th>
+              <th className="px-3 md:px-4 py-2 border-b">Email</th>
+              <th className="px-3 md:px-4 py-2 border-b">Created At</th>
+              <th className="px-3 md:px-4 py-2 border-b">Updated At</th>
             </tr>
           </thead>
           <tbody>
             {clients.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-500 text-sm">
-                <td className="px-4 py-2 border-b">{c.id}</td>
-                <td className="px-4 py-2 border-b">{c.name}</td>
-                <td className="px-4 py-2 border-b">{c.type}</td>
-                <td className="px-4 py-2 border-b">{c.email}</td>
-                <td className="px-4 py-2 border-b">{c.createdAt}</td>
-                <td className="px-4 py-2 border-b">{c.updatedAt}</td>
+              <tr
+                key={c.id}
+                className="hover:bg-gray-100 text-sm border-b last:border-0"
+              >
+                <td className="px-3 md:px-4 py-2">{c.id}</td>
+                <td className="px-3 md:px-4 py-2">{c.name}</td>
+                <td className="px-3 md:px-4 py-2">{c.type}</td>
+                <td className="px-3 md:px-4 py-2">{c.email}</td>
+                <td className="px-3 md:px-4 py-2">{c.createdAt}</td>
+                <td className="px-3 md:px-4 py-2">{c.updatedAt}</td>
               </tr>
             ))}
           </tbody>
